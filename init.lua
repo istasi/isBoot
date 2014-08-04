@@ -1,5 +1,4 @@
 local file = computer.getBootAddress ()
-local depo = 'http://istasi.dk/opencomputer/istasiOS/'
 
 local gpu = component.list ( 'gpu',true ) ()
 screen = component.list ( 'screen',true ) ()
@@ -175,8 +174,28 @@ local function mkdir ( path )
 	end
 end
 
-local content = download ( depo .. 'config/version/version.db?1', false )
+local function set ( path, content )
+	local address = component.getBootAddress ()
+	local handle = component.invoke ( address, 'open', path, 'w' )
+	component.invoke ( address, 'write', handle, content )
+	component.invoke ( address, 'close', handle )
+end
+
+if type(repo) ~= 'string' then
+	status.message:write ( 'Repo have not been set.' )
+
+	stall ()
+end
+_G ['repo'] = nil
+
+local content = download ( repo, false )
+content = content:gsub ('([{,][ \t\r\n]*)("[^"]*") ?:', '%1 [%2]:' )
+set ( '/boot/version', content )
+stall ()
+
 if content ~= false then
+	
+
 	local files = {}
 
 
